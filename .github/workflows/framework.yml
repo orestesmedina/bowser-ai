@@ -1,0 +1,46 @@
+# CI del repositorio del framework (no se instala en los proyectos).
+name: Framework
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Sintaxis de los scripts
+        run: for f in .sdd/*.mjs herramientas/*.mjs; do node --check "$f"; done
+
+      - name: Skills (estándar Agent Skills) y comandos
+        run: node herramientas/validar-skills.mjs
+
+      - name: JSON válidos
+        run: node -e "for (const f of ['opencode.json','.sdd/config.json','ejemplo/.sdd/config.json']) JSON.parse(require('fs').readFileSync(f))"
+
+      - name: Proyecto de ejemplo (harness completo y métricas)
+        working-directory: ejemplo
+        run: |
+          node ../.sdd/verificar.mjs
+          node ../.sdd/metricas.mjs
+
+      - name: Instalador (instalación nueva, repetida y actualización)
+        run: |
+          P="$RUNNER_TEMP/proyecto"
+          mkdir -p "$P" && git -C "$P" init -q && echo "README del proyecto" > "$P/README.md"
+          node herramientas/instalar.mjs "$P" --activar-hook
+          test -f "$P/.opencode/agents/desarrollador.md"
+          test -f "$P/.sdd/verificar.mjs"
+          test -f "$P/.agents/skills/sdd-cambio/SKILL.md"
+          test "$(cat "$P/README.md")" = "README del proyecto"
+          test ! -e "$P/.git/HEAD.sdd-nuevo" && test ! -d "$P/herramientas" && test ! -d "$P/ejemplo"
+          test "$(git -C "$P" config core.hooksPath)" = ".sdd/hooks"
+          node herramientas/instalar.mjs "$P"
+          test -z "$(find "$P" -name '*.sdd-nuevo')"
+          node herramientas/instalar.mjs "$P" --actualizar

@@ -1,0 +1,11 @@
+{
+  "_ayuda": "Comandos del harness, en orden. Texto vacio = sin configurar (la verificacion falla). null = no aplica en este proyecto (se omite, decision explicita). Ejemplos en docs/manual/04-configuracion.md",
+  "verificacion": {
+    "pruebas": "",
+    "lint": "",
+    "build": "",
+    "dependencias": "",
+    "secretos": ""
+  },
+  "trazabilidad": true
+}

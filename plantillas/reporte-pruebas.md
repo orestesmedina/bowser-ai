@@ -7,19 +7,21 @@
 | Total | Pasaron | Fallaron | Omitidas |
 |-------|---------|----------|----------|
 
-## 2. Cobertura de criterios de aceptacion
+## 2. Cobertura de criterios de aceptación
 | Criterio | Prueba(s) | Resultado | Evidencia |
 |----------|-----------|-----------|-----------|
 | CA-01 | PR-01 | OK | salida del comando / captura |
 
 ## 3. Defectos encontrados
-| ID | Severidad | Descripcion | Pasos para reproducir | Criterio afectado |
+| ID | Severidad | Descripción | Pasos para reproducir | Criterio afectado |
 |----|-----------|-------------|-----------------------|-------------------|
 
-## 4. Revision de la constitucion
+## 4. Revisión de la constitución
 - [ ] Estilo y linter
 - [ ] Seguridad y privacidad
+- [ ] Dependencias: solo las de `arquitectura.md`, auditoría sin vulnerabilidades altas/críticas
+- [ ] Secretos: escaneo sin hallazgos
 - [ ] Pruebas completas
-- [ ] Documentacion
+- [ ] Documentación
 
 ## 5. Recomendaciones

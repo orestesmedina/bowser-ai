@@ -1,0 +1,8 @@
+{
+  "name": "ejemplo-registro-gastos",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "_ayuda": "Configuracion del proyecto de ejemplo. Sin dependencias externas: dependencias y secretos no aplican aqui.",
+  "verificacion": {
+    "pruebas": "node --test",
+    "lint": "node --check src/gastos.mjs",
+    "build": null,
+    "dependencias": null,
+    "secretos": null
+  },
+  "trazabilidad": true
+}

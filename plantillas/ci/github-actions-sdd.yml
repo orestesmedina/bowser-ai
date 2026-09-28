@@ -1,0 +1,41 @@
+# Plantilla de CI para GitHub Actions.
+# Copiala a .github/workflows/sdd.yml en tu proyecto y completa el paso de dependencias.
+# Ejecuta la suite completa (incluidas pruebas y auditoria de dependencias, que el hook pre-commit omite).
+# En una rama de funcionalidad a medio implementar es normal que falle (pruebas en rojo).
+# Hazlo obligatorio para fusionar a la rama principal:
+#   GitHub > Settings > Branches > Branch protection rule > "Require status checks to pass" > SDD / verificar
+name: SDD
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # historial completo para el escaneo de secretos
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Instala aqui el stack de tu proyecto. Ejemplos:
+      #   Node:    - run: npm ci
+      #   Python:  - uses: actions/setup-python@v5
+      #              with: { python-version: '3.12' }
+      #            - run: pip install -r requirements.txt pip-audit
+      #   .NET:    - uses: actions/setup-dotnet@v4
+
+      # Si el paso "secretos" usa gitleaks, instalalo. Fija la version vigente
+      # (https://github.com/gitleaks/gitleaks/releases):
+      # - name: Instalar gitleaks
+      #   run: |
+      #     V=8.24.0
+      #     curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${V}/gitleaks_${V}_linux_x64.tar.gz" \
+      #       | sudo tar xz -C /usr/local/bin gitleaks
+
+      - name: Harness (pruebas, lint, build, dependencias, secretos y trazabilidad)
+        run: node .sdd/verificar.mjs

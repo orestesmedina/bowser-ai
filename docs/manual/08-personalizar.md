@@ -1,52 +1,57 @@
 # 08. Personalizar el framework
 
 Todo el framework es texto plano. Puedes cambiarlo sin miedo: si algo sale mal, lo restauras.
-Este capitulo explica los cambios mas utiles.
+Este capítulo explica los cambios más útiles.
 
 ---
 
 ## 1. Cambiar el modelo de un agente
 
-Cada agente tiene su modelo en la parte de arriba de su archivo, entre `---`. Por ejemplo,
-abre `.opencode/agents/desarrollador.md`:
+Todos los modelos están juntos en `opencode.json`, en el bloque `agent`:
 
-```markdown
----
-description: Desarrollador. Usalo para implementar tareas del plan, una por una...
-mode: subagent
-model: opencode-go/kimi-k2.7-code
-temperature: 0.2
-permission:
-  question: allow
-  edit: allow
-  bash: allow
----
+```json
+"agent": {
+  "orquestador": { "model": "opencode-go/deepseek-v4-pro", "temperature": 0.2 },
+  "analista": { "model": "opencode-go/kimi-k3", "temperature": 0.3 },
+  "arquitecto": { "model": "opencode-go/glm-5.3", "temperature": 0.2 },
+  "disenador-pruebas": { "model": "opencode-go/deepseek-v4-pro", "temperature": 0.1 },
+  "desarrollador": { "model": "opencode-go/kimi-k2.7-code", "temperature": 0.2 },
+  "verificador": { "model": "opencode-go/grok-4.7", "temperature": 0.1 }
+}
 ```
 
-Cambia la linea `model:` por el que quieras. Para ver los disponibles:
+Cambia el `model` que quieras. Los catálogos cambian cada pocos meses, así que revisa los disponibles
+de vez en cuando:
 
 ```powershell
 opencode models
 ```
 
-Ideas utiles:
+Y comprueba qué modelo usa de verdad cada agente con `opencode debug agent <nombre>`.
+
+> No pongas `model:` en los archivos de `.opencode/agents/`: si lo haces, ese valor gana sobre
+> `opencode.json` y vuelves a tener los modelos repartidos en varios sitios.
+>
+> Muchos modelos de razonamiento ignoran `temperature`. Si un proveedor da error por ese campo, quítalo.
+
+Ideas útiles:
 
 | Si quieres... | Cambia... |
 |---------------|-----------|
-| Gastar menos | Modelos mas baratos en `analista` y `disenador-pruebas` |
-| Mejor codigo | Un modelo de codigo mas potente en `desarrollador` |
-| Mas independencia al verificar | Que `verificador` use **otro proveedor** distinto al `desarrollador` |
-| Respuestas mas creativas | Sube `temperature` (0.7-1.0) |
-| Respuestas mas precisas | Baja `temperature` (0.0-0.2) |
+| Gastar menos | Modelos más baratos en `analista` y `disenador-pruebas` |
+| Mejor código | Un modelo de código más potente en `desarrollador` |
+| Más independencia al verificar | Que `verificador` use **otro proveedor** distinto al `desarrollador` |
+| Respuestas más creativas | Sube `temperature` (0.7-1.0) |
+| Respuestas más precisas | Baja `temperature` (0.0-0.2) |
 
-> El modelo por defecto del proyecto esta en `opencode.json`. Si un agente no define `model`,
+> El modelo por defecto del proyecto está en `opencode.json`. Si un agente no define `model`,
 > hereda el del agente principal que lo invoca.
 
 ---
 
 ## 2. Ajustar permisos
 
-Los permisos controlan que puede hacer cada agente. Tres valores:
+Los permisos controlan qué puede hacer cada agente. Tres valores:
 
 - `allow` = sin preguntar.
 - `ask` = te pide permiso.
@@ -65,8 +70,8 @@ permission:
 
 ### Regla importante de orden
 
-Los patrones se evaluan **en orden** y **gana la ultima regla que coincide**. Por eso las reglas
-generales van primero y las especificas despues:
+Los patrones se evalúan **en orden** y **gana la última regla que coincide**. Por eso las reglas
+generales van primero y las específicas después:
 
 ```markdown
 permission:
@@ -75,88 +80,117 @@ permission:
     "specs/**": allow
 ```
 
-Esto significa: "prohibe editar todo, excepto dentro de `specs/`". Si lo pusieras al reves,
-`"*": deny` al final lo prohibiria todo.
+Esto significa: "prohíbe editar todo, excepto dentro de `specs/`". Si lo pusieras al revés,
+`"*": deny` al final lo prohibiría todo.
 
-### Permitir mas cosas
+### Permitir más cosas
 
-Si un agente se queda corto (por ejemplo, el `arquitecto` necesita leer el codigo con comandos),
-cambia su `bash: deny` por `bash: ask`. Pero piensalo: menos permisos = menos sorpresas.
+Si un agente se queda corto (por ejemplo, el `arquitecto` necesita leer el código con comandos),
+cambia su `bash: deny` por `bash: ask`. Pero piénsalo: menos permisos = menos sorpresas.
 
 ---
 
-## 3. Anadir un agente nuevo
+## 3. Añadir un agente nuevo
 
 Crea un archivo en `.opencode/agents/` con el nombre del agente. Por ejemplo,
 `.opencode/agents/seguridad.md`:
 
 ```markdown
 ---
-description: Revisa el codigo buscando problemas de seguridad. Usalo antes de publicar.
+description: Revisa el código buscando problemas de seguridad. Úsalo antes de publicar.
 mode: subagent
-model: opencode-go/grok-4.7
-temperature: 0.1
 permission:
   question: allow
+  webfetch: ask
   edit: deny
-  bash: allow
+  bash:
+    "*": ask
+    "node .sdd/verificar.mjs*": allow
+    "git diff*": allow
 ---
 
-Eres un auditor de seguridad. Revisas el codigo en busca de:
-- Validacion de entradas.
+Eres un auditor de seguridad. Revisas el código en busca de:
+- Validación de entradas.
 - Manejo de secretos.
 - Permisos y acceso a datos.
-Reportas hallazgos con severidad y una recomendacion. No modificas codigo.
+Reportas hallazgos con severidad y una recomendación. No modificas código.
 ```
 
 Reglas para que funcione:
 
 - El nombre del archivo es el nombre del agente (`seguridad.md` -> agente `seguridad`).
-- `description` es obligatorio y debe decir **cuando usarlo**: asi el modelo lo elige bien.
-- `mode: subagent` para que lo invoquen otros; `mode: primary` para hablarle con Tab.
-- Si quieres que el `orquestador` pueda lanzarlo, anadelo a su `permission.task`.
+- `description` es obligatorio y debe decir **cuándo usarlo**: así el modelo lo elige bien.
+- `mode: subagent` para que lo invoquen otros; `mode: primary` para hablarle con Tab; `mode: all` para ambos
+  (necesario si su comando tiene que dialogar contigo).
+- Su modelo va en `opencode.json`, junto a los demás:
+  `"seguridad": { "model": "opencode-go/grok-4.7", "temperature": 0.1 }`.
+- Empieza con permisos mínimos (`"*": ask` en bash) y abre solo lo que necesite.
+- Si quieres que el `orquestador` pueda lanzarlo, añádelo a su `permission.task`.
 
 ---
 
-## 4. Anadir un comando nuevo
+## 4. Añadir un comando nuevo
 
-Crea un archivo en `.opencode/commands/`. El nombre del archivo es el comando. Por ejemplo,
-`.opencode/commands/seguridad.md`:
+Un comando tiene dos partes: la **skill** (el procedimiento) y el **comando** (quién lo ejecuta).
+
+1. Crea la skill en `.agents/skills/sdd-seguridad/SKILL.md` (la carpeta y `name` deben coincidir):
 
 ```markdown
 ---
-description: Auditoria de seguridad sobre el codigo actual
+name: sdd-seguridad
+description: "Auditoría de seguridad del código de una funcionalidad: entradas, secretos, permisos y datos personales. Úsala antes de publicar."
+metadata:
+  framework: mi-framework-sdd
+  version: "0.3.0"
+---
+
+# sdd-seguridad
+
+- **Rol recomendado:** auditor de seguridad (no modifica código)
+- **Entrada:** el nombre de la funcionalidad
+
+Pasos:
+1. Lee `docs/constitucion.md`, sección de seguridad.
+2. Revisa el código de la funcionalidad indicada.
+3. Reporta hallazgos con severidad y recomendación.
+```
+
+2. Crea el comando en `.opencode/commands/seguridad.md`:
+
+```markdown
+---
+description: Auditoría de seguridad sobre el código de una funcionalidad
 agent: seguridad
 ---
 
-Revisa los cambios recientes y busca problemas de seguridad.
-Argumentos: $ARGUMENTS
+Funcionalidad: $ARGUMENTS
 
-Pasos:
-1. Lee `docs/constitucion.md`, seccion de seguridad.
-2. Revisa el codigo de la funcionalidad $ARGUMENTS.
-3. Reporta hallazgos con severidad y recomendacion.
+Carga la skill `sdd-seguridad` con la herramienta `skill` y sigue sus instrucciones paso a paso.
+Si la herramienta no está disponible, lee `.agents/skills/sdd-seguridad/SKILL.md` y síguelo.
 ```
 
-- `$ARGUMENTS` se reemplaza por lo que escribas despues del comando.
-- `agent:` indica que agente lo ejecuta. Si es un subagente, se lanza como tal.
+- `$ARGUMENTS` se reemplaza por lo que escribas después del comando (solo en el comando, no en la skill).
+- `agent:` indica qué agente lo ejecuta. Si es un subagente, se lanza en una sesión hija; añade
+  `subtask: false` si el comando necesita dialogar contigo.
 - Sin `agent:`, lo ejecuta el agente actual.
+- Pon la `description` entre comillas si contiene `: ` (si no, el YAML es inválido y la skill no carga).
+- Comprueba con `opencode debug skill` que aparece.
 
-Luego podras usar `/seguridad registro-gastos`.
+Luego podrás usar `/seguridad registro-gastos`.
 
 ---
 
 ## 5. Ajustar las plantillas
 
 Si quieres que tus documentos tengan otros campos, edita los archivos en `plantillas/`.
-Los agentes los usaran tal cual. Por ejemplo, anadir una seccion "Presupuesto" a `arquitectura.md`.
+Los agentes los usarán tal cual. Por ejemplo, añadir una sección "Presupuesto" a `arquitectura.md`.
 
 ---
 
 ## 6. El registro de lecciones aprendidas
 
-En `docs/constitucion.md`, al final, hay una seccion **"Registro de lecciones aprendidas"**.
-Cada vez que un agente repita un error, anade una regla ahi. Ejemplos:
+En `docs/constitucion.md`, al final, hay una sección **"Registro de lecciones aprendidas"**.
+Cada vez que un agente repita un error, añade una regla ahí. Ejemplos:
 
 ```markdown
 ## 8. Registro de lecciones aprendidas
@@ -165,16 +199,22 @@ Cada vez que un agente repita un error, anade una regla ahi. Ejemplos:
 - No usar `SELECT *` en consultas nuevas.
 ```
 
-Asi el framework **mejora con cada proyecto**. Es la pieza que convierte errores repetidos en reglas permanentes.
+Así el framework **mejora con cada proyecto**. Es la pieza que convierte errores repetidos en reglas permanentes.
 
 ---
 
-## 7. Anadir un harness mas estricto (opcional)
+## 7. Ajustar el harness
 
-Si quieres que nada se de por terminado sin pasar la verificacion, puedes anadir un "hook" o
-integrar CI. Empieza simple: basta con que `AGENTS.md` liste los comandos y que el `desarrollador`
-tenga `bash: allow`. Cuando el equipo crezca, anade un flujo de CI (por ejemplo GitHub Actions)
-que corra los mismos comandos en cada push.
+El harness vive en `.sdd/`:
+
+- **Añadir un paso:** agrega una clave en `verificacion` de `.sdd/config.json`
+  (por ejemplo `"licencias": "npx license-checker --failOn GPL"`). Se ejecuta en orden y, si falla, bloquea.
+- **Desactivar la trazabilidad:** `"trazabilidad": false` (no recomendado).
+- **Hook pre-commit:** `.sdd/hooks/pre-commit` ejecuta `node .sdd/verificar.mjs --omitir pruebas,dependencias`.
+  Si tus pruebas son rápidas y no trabajas con pruebas en rojo, puedes quitar `pruebas` de esa lista.
+- **CI:** la plantilla `plantillas/ci/github-actions-sdd.yml` ejecuta la suite completa en cada push.
+
+Los agentes no pueden modificar `.sdd/` (permiso `deny`), así que estos cambios los haces tú.
 
 ---
 

@@ -1,0 +1,15 @@
+#!/bin/sh
+# Hook pre-commit del framework SDD: no deja hacer commit si fallan lint, build, secretos o trazabilidad.
+# No se ejecutan aqui:
+#   - pruebas: durante /implementar las pruebas de aceptacion de las tareas pendientes fallan a proposito (rojo).
+#   - dependencias: la auditoria necesita red y es lenta.
+# Ambas las ejecuta el CI antes de fusionar.
+#
+# Activar una vez por repositorio:  git config core.hooksPath .sdd/hooks
+# Saltarlo en una emergencia (queda bajo tu responsabilidad):  git commit --no-verify
+
+node .sdd/verificar.mjs --omitir pruebas,dependencias || {
+  echo ""
+  echo "Commit bloqueado: la verificacion fallo. Revisa la salida de arriba."
+  exit 1
+}

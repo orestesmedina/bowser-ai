@@ -1,14 +1,6 @@
 ---
-description: Muestra en que fase esta cada funcionalidad y que sigue
+description: Muestra en qué fase está cada funcionalidad y qué sigue
 ---
 
-Revisa todas las carpetas en `specs/` y muestra una tabla con:
-
-| Funcionalidad | Requerimientos | Arquitectura | Plan | Tareas hechas | Pruebas | Siguiente paso |
-
-- Para cada documento indica: no existe / borrador / aprobado.
-- En "Tareas hechas" usa el formato `completadas/total` segun `plan-tareas.md`.
-- En "Pruebas" usa el veredicto de `reporte-pruebas.md`, si existe.
-- En "Siguiente paso" indica el comando exacto a ejecutar.
-
-No modifiques ningun archivo.
+Carga la skill `sdd-estado` con la herramienta `skill` y sigue sus instrucciones paso a paso.
+Si la herramienta no está disponible, lee `.agents/skills/sdd-estado/SKILL.md` y síguelo.

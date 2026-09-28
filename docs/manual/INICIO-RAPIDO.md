@@ -1,39 +1,45 @@
-# Inicio rapido
+# Inicio rápido
 
 Para quien ya tiene opencode instalado y quiere ver el framework funcionando en 10 minutos.
 Si prefieres entender antes de actuar, ve a [01-que-es-esto.md](01-que-es-esto.md).
 
 ---
 
-## Paso 1. Copia el framework a tu proyecto
+## Paso 1. Instala el framework en tu proyecto
 
-Copia **todo** el contenido de esta carpeta a la raiz de tu proyecto. Incluye la carpeta
-oculta `.opencode/` (es la que trae los agentes y los comandos).
-
-En Windows, con PowerShell:
+Necesitas Node.js 18 o superior y que tu proyecto sea un repositorio git. En PowerShell:
 
 ```powershell
-Copy-Item -Path "D:\IA\mi-framework-sdd-opencode\*" -Destination "C:\ruta\a\tu-proyecto" -Recurse -Force
+cd D:\IA\mi-framework-sdd-opencode
+node herramientas/instalar.mjs C:\ruta\a\tu-proyecto --activar-hook
 ```
 
-Si tu proyecto ya tenia una carpeta `.opencode/`, copia solo lo que falte para no pisar tus cosas.
+No sobrescribe archivos que ya existan en tu proyecto: si ya tenías `AGENTS.md` u `opencode.json`,
+deja la versión del framework como `.sdd-nuevo` para que la fusiones (ver [03-antes-de-empezar.md](03-antes-de-empezar.md)).
 
 ## Paso 2. Rellena dos archivos
 
 Abre y edita:
 
 1. **`docs/constitucion.md`** -> tus reglas: lenguaje, linter, framework de pruebas, seguridad.
-2. **`AGENTS.md`** -> en la seccion **Harness**, pon los comandos reales de tu proyecto.
+2. **`.sdd/config.json`** -> los comandos reales de pruebas, lint, build, auditoría de dependencias y
+   escaneo de secretos de tu proyecto (`null` en los que no apliquen).
 
-Ejemplo de la seccion Harness ya rellena:
+Ejemplo ya relleno:
 
-```markdown
-- **Pruebas:** `npm test`
-- **Linter/formato:** `npm run lint`
-- **Tipos/build:** `npx tsc --noEmit`
+```json
+"verificacion": {
+  "pruebas": "npm test",
+  "lint": "npm run lint",
+  "build": "npx tsc --noEmit",
+  "dependencias": "npm audit --audit-level=high",
+  "secretos": "gitleaks git --no-banner --redact"
+}
 ```
 
-> Sin esto, el agente no sabe como comprobar su trabajo. Es el paso mas importante.
+Compruébalo con `node .sdd/verificar.mjs`. (El hook ya quedó activo con `--activar-hook`.)
+
+> Sin esto, el agente no sabe cómo comprobar su trabajo. Es el paso más importante.
 
 ## Paso 3. Abre opencode en tu proyecto
 
@@ -42,11 +48,11 @@ cd C:\ruta\a\tu-proyecto
 opencode
 ```
 
-## Paso 4. Comprueba que cargo
+## Paso 4. Comprueba que cargó
 
-Dentro de opencode, escribe `/` y deberias ver en la lista:
+Dentro de opencode, escribe `/` y deberías ver en la lista:
 
-`/requerimientos`, `/arquitectura`, `/planificar`, `/pruebas`, `/implementar`, `/probar`, `/estado`.
+`/requerimientos`, `/arquitectura`, `/planificar`, `/pruebas`, `/implementar`, `/probar`, `/cambio`, `/arreglar`, `/mapear`, `/estado`.
 
 Si no aparecen, ve a [09-problemas.md](09-problemas.md).
 
@@ -67,12 +73,12 @@ Cuando termines, usa `/estado` para ver un resumen de todo.
 
 ---
 
-## Que acabas de hacer
+## Qué acabas de hacer
 
 - Cada comando lo ejecuta un **agente especializado** distinto.
 - Cada fase deja un **documento** en `specs/registro-gastos/`.
-- El codigo se escribe solo despues de aprobar los documentos.
-- El ultimo agente **verifica de forma independiente** que se cumple lo prometido.
+- El código se escribe solo después de aprobar los documentos.
+- El último agente **verifica de forma independiente** que se cumple lo prometido.
 
 ---
 

@@ -1,0 +1,3 @@
+# Los scripts del harness siempre con LF: con CRLF el hook falla en Linux/CI.
+hooks/* text eol=lf
+*.mjs text eol=lf

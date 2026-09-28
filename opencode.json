@@ -1,4 +1,43 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "opencode-go/deepseek-v4-pro"
+  "model": "opencode-go/deepseek-v4-pro",
+  "permission": {
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow",
+      "*.pem": "deny",
+      "*.key": "deny",
+      "*.p12": "deny",
+      "*.pfx": "deny",
+      "**/id_rsa*": "deny",
+      "**/id_ed25519*": "deny",
+      "**/.npmrc": "deny",
+      "**/.pypirc": "deny"
+    }
+  },
+  "agent": {
+    "orquestador": { "model": "opencode-go/deepseek-v4-pro", "temperature": 0.2 },
+    "analista": { "model": "opencode-go/kimi-k3", "temperature": 0.3 },
+    "arquitecto": { "model": "opencode-go/glm-5.3", "temperature": 0.2 },
+    "disenador-pruebas": { "model": "opencode-go/deepseek-v4-pro", "temperature": 0.1 },
+    "desarrollador": { "model": "opencode-go/kimi-k2.7-code", "temperature": 0.2 },
+    "verificador": { "model": "opencode-go/grok-4.7", "temperature": 0.1 },
+    "build": {
+      "permission": {
+        "edit": {
+          "*": "allow",
+          "specs/**": "ask",
+          "tests/aceptacion/**": "ask",
+          "docs/constitucion.md": "ask",
+          "AGENTS.md": "ask",
+          "opencode.json": "ask",
+          ".opencode/**": "ask",
+          ".sdd/**": "ask",
+          ".agents/**": "ask"
+        }
+      }
+    }
+  }
 }
